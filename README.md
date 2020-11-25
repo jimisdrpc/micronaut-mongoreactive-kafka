@@ -1,6 +1,2 @@
-## Feature kafka documentation
-
-- [Micronaut Kafka Messaging documentation](https://micronaut-projects.github.io/micronaut-kafka/latest/guide/index.html)
-
-Kafka Consumer + Mongo Reactive
-
+*** Kafka Consumer + Mongo Reactive saving throw RxJava2.reactivex.single
+https://stackoverflow.com/questions/64840834/how-retrieve-and-add-new-document-to-mongodb-collection-throw-com-mongodb-reacti/65001578

@@ -1,42 +1,39 @@
 package com.mybank.consumer
 
+import com.mongodb.client.result.InsertOneResult
 import com.mongodb.reactivestreams.client.MongoClient
 import com.mongodb.reactivestreams.client.MongoCollection
-import com.mongodb.reactivestreams.client.MongoDatabase
 import io.micronaut.configuration.kafka.annotation.KafkaKey
 import io.micronaut.configuration.kafka.annotation.KafkaListener
 import io.micronaut.configuration.kafka.annotation.OffsetReset
 import io.micronaut.configuration.kafka.annotation.Topic
-import org.bson.Document
-import org.reactivestreams.Publisher
+import io.micronaut.messaging.annotation.Body
+import io.reactivex.Observable
+import io.reactivex.Single
 import javax.inject.Inject
-
+import io.reactivex.functions.Function
 
 @KafkaListener(offsetReset = OffsetReset.EARLIEST)
 class DebitConsumer {
 
     @Inject
-    //@Named("another")
-    var mongoClient: MongoClient? = null
-
+    lateinit var mongoClient: MongoClient
 
     @Topic("debit")
-    fun receive(@KafkaKey key: String, name: String) {
+    fun receiveBody(@KafkaKey key: String, @Body debitMessage: DebitMessage) {
 
+        Observable.just(key)
+            .subscribe { n -> println(n) }
 
-        println("Account - $name by $key")
+        Single
+                .fromPublisher(getCollection().insertOne(debitMessage))
+                .map<DebitMessage>(Function<InsertOneResult, DebitMessage> { debitMessage })
+                .subscribe()
+    }
 
-
-        var mongoDb : MongoDatabase? = mongoClient?.getDatabase("account")
-        var mongoCollection: MongoCollection<Document>? = mongoDb?.getCollection("account_collection")
-        var mongoDocument: Publisher<Document>? = mongoCollection?.find()?.first()
-        print(mongoDocument.toString())
-
-        //println(mongoClient?.getDatabase("account")?.getCollection("account_collection")?.find()?.first())
-        //val mongoClientClient: MongoDatabase  = mongoClient.getDatabase("account")
-        //println(mongoClient.getDatabase("account").getCollection("account_collection").find({ "size.h": { $lt: 15 } })
-        //println(mongoClient.getDatabase("account").getCollection("account_collection").find("1").toString())
-
-
+    private fun getCollection(): MongoCollection<DebitMessage?> {
+        return mongoClient
+                .getDatabase("mydb")
+                .getCollection("mycollection", DebitMessage::class.java)
     }
 }
